@@ -6,6 +6,10 @@ MedStick runs entirely on a laptop — no internet, no cloud API calls. A field 
 
 > The `hospital_ui/` folder in this repo contains a separate React dashboard showing how a regional hospital command center would monitor field workers. This app (in `medstick/`) is the offline worker-side system.
 
+
+https://github.com/user-attachments/assets/d786ca72-8b45-4883-8214-bfe943390a24
+
+
 ---
 
 ## What it does
