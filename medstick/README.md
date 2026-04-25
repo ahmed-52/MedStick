@@ -1,73 +1,51 @@
-# React + TypeScript + Vite
+# MedStick
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Offline-first AI-assisted clinical workspace for rural and humanitarian-setting health workers. Phone-shaped PWA, all inference local via llama.cpp + MedGemma 4B.
 
-Currently, two official plugins are available:
+## Layout
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+medstick/
+├── start.sh              launcher (spawns llama-server + node + Chrome)
+├── web/                  Vite + React PWA
+├── server/               Node + Express + SQLite
+├── seed/protocols.json   bilingual WHO chunks
+├── bin/                  drop llama-server here
+├── models/               drop GGUF weights here
+└── data/                 SQLite DB + photos (created at runtime)
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## One-time setup
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. Install deps:
+   ```bash
+   npm --prefix web install
+   npm --prefix server install
+   ```
+2. Place the llama.cpp `llama-server` binary at `bin/llama-server` (or `bin/llama-b8931/llama-server` — both work).
+3. Place GGUF weights in `models/`:
+   - `medgemma-4b-it-Q4_K_M.gguf` (text — required)
+   - `mmproj-medgemma-4b-it-f16.gguf` (vision projector — required for image modes)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Run
+
+```bash
+./start.sh
 ```
+
+The launcher boots `llama-server` on `:8080`, the Node API on `:3000`, warms the model, then opens Chrome to http://localhost:3000. Ctrl+C kills both.
+
+## Dev
+
+Run server and web independently with HMR:
+
+```bash
+npm --prefix server run dev   # tsx watch on :3000
+npm --prefix web run dev      # vite on :5173, proxies /api → :3000
+```
+
+(You still need `llama-server` running for chat to work.)
+
+## Demo
+
+For the on-stage demo, open Chrome DevTools, toggle the device toolbar, and pick Pixel 7 — the PWA presents as a phone. The laptop can be on airplane mode; everything is localhost.

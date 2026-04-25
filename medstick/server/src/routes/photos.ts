@@ -34,6 +34,15 @@ export function photosRouter(photosDir: string) {
     res.status(201).json(photo)
   })
 
+  r.get('/photos', (req, res) => {
+    const patient_id = (req.query.patient_id as string) || null
+    if (patient_id) {
+      const list = db.listPhotosForPatient(req.app.locals.db, patient_id)
+      return res.json(list)
+    }
+    res.json([])
+  })
+
   r.get('/photos/:id', (req, res) => {
     const photo = db.getPhoto(req.app.locals.db, req.params.id)
     if (!photo) return res.status(404).end()
