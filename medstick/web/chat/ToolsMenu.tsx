@@ -14,9 +14,8 @@ interface Props {
   onReplaceInline: (id: string, msg: ToolMessage) => void
 }
 
-// Outbreak protocols lead — grounding replies in WHO PDFs is the primary value;
-// modes / patient tooling follow.
-const groupOrder: ToolGroup[] = ['protocols', 'modes', 'patient', 'attachments', 'lookup']
+// Modes lead — they are the primary clinical action surface.
+const groupOrder: ToolGroup[] = ['modes', 'patient', 'attachments', 'lookup']
 
 export function ToolsMenu({ onAppendInline, onReplaceInline }: Props) {
   const { t, lang } = useI18n()

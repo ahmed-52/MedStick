@@ -1,27 +1,16 @@
 import type { NextConfig } from "next";
-import withPWAInit from "@ducanh2912/next-pwa";
-
-const isDev = process.env.NODE_ENV === "development";
-
-const withPWA = withPWAInit({
-  dest: "public",
-  register: true,
-  workboxOptions: {
-    disableDevLogs: true,
-    // Don't intercept API requests — SSE streaming and live data must hit the server.
-    navigateFallbackDenylist: [/^\/api\//],
-  },
-  disable: isDev,
-});
 
 const baseConfig: NextConfig = {
   output: "export",
   images: { unoptimized: true },
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
-  // `output: 'export'` does not run a Next server in production — Express
-  // serves the static `out/` build. `rewrites` only work in `next dev`.
-  ...(isDev && {
+  // PWA / service worker is intentionally disabled. Earlier builds shipped a
+  // workbox SW that runtime-cached /api/* GET requests with NetworkFirst, so a
+  // stale `apis` cache made newly created chats invisible to the sidebar.
+  // The app is run inside the office on the express server, so offline support
+  // isn't a requirement — keeping the SW out is the safer default.
+  ...(process.env.NODE_ENV === "development" && {
     async rewrites() {
       return [
         { source: "/api/:path*", destination: "http://127.0.0.1:3000/api/:path*" },
@@ -37,4 +26,4 @@ const baseConfig: NextConfig = {
   },
 };
 
-export default withPWA(baseConfig as any);
+export default baseConfig;

@@ -15,9 +15,8 @@ else
 fi
 
 # Pick model files
-MODEL=$(ls models/*.gguf 2>/dev/null | grep -v mmproj | grep -vi embed | head -n1 || true)
+MODEL=$(ls models/*.gguf 2>/dev/null | grep -v mmproj | head -n1 || true)
 MMPROJ=$(ls models/*mmproj*.gguf 2>/dev/null | head -n1 || true)
-EMBED_MODEL=$(ls models/*embed*.gguf 2>/dev/null | head -n1 || true)
 
 if [ -z "$MODEL" ]; then
   echo "ERROR: no GGUF model found in models/" >&2
@@ -48,38 +47,16 @@ echo "→ Starting llama-server ($MODEL)…"
 "$LLAMA_BIN" "${LLAMA_ARGS[@]}" > data/logs/llama.log 2>&1 &
 LLAMA_PID=$!
 
-EMBED_PID=""
-if [ -n "$EMBED_MODEL" ]; then
-  echo "→ Starting llama-server (embedder $EMBED_MODEL on :8081)…"
-  "$LLAMA_BIN" -m "$EMBED_MODEL" --embedding --port 8081 --host 127.0.0.1 -c 8192 > data/logs/embed.log 2>&1 &
-  EMBED_PID=$!
-else
-  echo "⚠ No embedder model found in models/ — RAG will be disabled."
-fi
-
 # Wait for llama
 for i in {1..60}; do
   if curl -sf http://127.0.0.1:8080/health >/dev/null 2>&1; then break; fi
   sleep 1
   if [ "$i" = "60" ]; then
     echo "ERROR: llama-server did not become ready (see data/logs/llama.log)" >&2
-    kill $LLAMA_PID $EMBED_PID 2>/dev/null
+    kill $LLAMA_PID 2>/dev/null
     exit 1
   fi
 done
-
-# Wait for embedder if present
-if [ -n "$EMBED_PID" ]; then
-  for i in {1..60}; do
-    if curl -sf http://127.0.0.1:8081/health >/dev/null 2>&1; then break; fi
-    sleep 1
-    if [ "$i" = "60" ]; then
-      echo "ERROR: embedder did not become ready (see data/logs/embed.log)" >&2
-      kill $LLAMA_PID $EMBED_PID 2>/dev/null
-      exit 1
-    fi
-  done
-fi
 
 # Warm up the model with a dummy request (mitigates first-token latency on stage)
 curl -sf -X POST http://127.0.0.1:8080/v1/chat/completions \
@@ -104,9 +81,6 @@ done
 echo
 echo "✓ MedStick is running."
 echo "  llama-server  pid=$LLAMA_PID  log=data/logs/llama.log"
-if [ -n "$EMBED_PID" ]; then
-  echo "  embedder      pid=$EMBED_PID  log=data/logs/embed.log"
-fi
 echo "  node server   pid=$NODE_PID   log=data/logs/server.log"
 echo "  → http://localhost:3000"
 echo
@@ -120,7 +94,7 @@ fi
 cleanup() {
   echo
   echo "→ shutting down…"
-  kill $LLAMA_PID $EMBED_PID $NODE_PID 2>/dev/null || true
+  kill $LLAMA_PID $NODE_PID 2>/dev/null || true
   wait 2>/dev/null
 }
 trap cleanup EXIT INT TERM

@@ -8,6 +8,7 @@ import { useI18n } from '@/i18n/useI18n'
 import { api } from '@/lib/api'
 import type { Patient, Encounter } from '@/lib/types'
 import { PatientDetail } from './PatientDetail'
+import { NewPatientModal } from './NewPatientModal'
 
 export function PatientsScreen() {
   const viewing = useApp((s) => s.viewingPatientId)
@@ -20,9 +21,11 @@ function PatientsList() {
   const setViewing = useApp((s) => s.setViewingPatient)
   const setActive = useApp((s) => s.setActivePatient)
   const setActiveChat = useApp((s) => s.setActiveChat)
+  const chatListVersion = useApp((s) => s.chatListVersion)
   const [patients, setPatients] = useState<Patient[]>([])
   const [counts, setCounts] = useState<Record<string, number>>({})
   const [q, setQ] = useState('')
+  const [newOpen, setNewOpen] = useState(false)
 
   useEffect(() => {
     let cancel = false
@@ -44,12 +47,9 @@ function PatientsList() {
       cancel = true
       clearTimeout(id)
     }
-  }, [q])
+  }, [q, chatListVersion])
 
-  const newPatient = async () => {
-    const name = window.prompt(t.patients.new + ':')
-    if (!name?.trim()) return
-    const p = await api.createPatient({ name: name.trim() })
+  const handleCreated = (p: Patient) => {
     setPatients((arr) => [p, ...arr])
     setActive(p.id)
     setActiveChat(null)
@@ -64,7 +64,7 @@ function PatientsList() {
             <span className="text-text-soft-400 text-sm">/</span>
             <span className="text-text-sub-600 text-sm">{t.patients.title}</span>
           </div>
-          <Button.Root onClick={newPatient} size="small">
+          <Button.Root onClick={() => setNewOpen(true)} size="small" className="cursor-pointer">
             <Button.Icon as={RiAddLine} />
             {t.patients.new}
           </Button.Root>
@@ -78,6 +78,12 @@ function PatientsList() {
             className="w-full rounded-lg border border-stroke-soft-200 bg-bg-white-0 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-base"
           />
         </div>
+
+        <NewPatientModal
+          isOpen={newOpen}
+          onClose={() => setNewOpen(false)}
+          onCreated={handleCreated}
+        />
 
         <div className="flex-1 min-h-0 overflow-y-auto px-1">
           {patients.length === 0 ? (

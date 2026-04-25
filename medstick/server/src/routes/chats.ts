@@ -31,6 +31,35 @@ chats.delete('/chats/:id', (req, res) => {
   res.status(204).end()
 })
 
+// Append a message pair to a chat WITHOUT invoking the LLM. Used by tool-mode
+// flows (e.g. the Cholera assessment) that compute their result via /api/chat
+// one-shot but still want the exchange in the chat history so subsequent
+// streaming turns have the context.
+chats.post('/chats/:id/log', (req, res) => {
+  const d = req.app.locals.db as db.DB
+  const chatId = req.params.id
+  const c = db.getChat(d, chatId)
+  if (!c) return res.status(404).json({ error: 'chat not found' })
+  const messages = (req.body?.messages ?? []) as Array<{
+    role: 'user' | 'assistant' | 'tool'
+    content: string
+    image_ids?: string[]
+  }>
+  const persisted: db.Message[] = []
+  for (const m of messages) {
+    if (!m || typeof m.content !== 'string') continue
+    persisted.push(
+      db.appendMessage(d, {
+        chat_id: chatId,
+        role: m.role,
+        content: m.content,
+        image_ids: m.image_ids?.length ? JSON.stringify(m.image_ids) : null,
+      }),
+    )
+  }
+  res.status(201).json({ messages: persisted })
+})
+
 chats.get('/chats/:id/messages', (req, res) => {
   const list = db.listMessages(req.app.locals.db, req.params.id)
   res.json(list)
@@ -60,23 +89,16 @@ chats.post('/chats/:id/messages', async (req, res) => {
 
   const llamaMessages: ChatMessage[] = []
 
-  // 1) MedStick clinical persona (patient context + matched WHO IMCI summaries).
+  // System content. Concatenate everything into ONE system message —
+  // Gemma's chat template requires strict role alternation and rejects
+  // back-to-back system messages with a Jinja exception.
   const clinical = buildClinicalSystem(d, { chatId, userText: content })
-  llamaMessages.push({ role: 'system', content: clinical.base })
-
-  // 2) Contextual safety trigger — only present when the user's message actually
-  //    mentions a contraindicated drug/scenario. Kept as a separate message so
-  //    the model can't echo a generic "PROACTIVE SAFETY TRIGGERS" header.
-  if (clinical.trigger) {
-    llamaMessages.push({ role: 'system', content: clinical.trigger })
-  }
-
-  // 3) Tool-specific system override (specialty modes pass their own).
-  if (system) llamaMessages.push({ role: 'system', content: system })
-
-  // 4) RAG excerpts from attached PDFs, if any.
+  const systemBlocks: string[] = [clinical.base]
+  if (clinical.trigger) systemBlocks.push(clinical.trigger)
+  if (system) systemBlocks.push(system)
   const ragSystem = await buildRagSystemMessage(d, chatId, content)
-  if (ragSystem) llamaMessages.push({ role: 'system', content: ragSystem })
+  if (ragSystem) systemBlocks.push(ragSystem)
+  llamaMessages.push({ role: 'system', content: systemBlocks.join('\n\n') })
 
   // Build messages, collapsing any consecutive same-role messages so Gemma's
   // chat template (which requires strict user/assistant alternation) doesn't

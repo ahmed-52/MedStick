@@ -1,6 +1,6 @@
 'use client'
 // Side-effect imports — each module registers its tool with the registry on import.
-// Cholera registers first so it leads the protocols group at the top of the menu.
+// Cholera registers first so it leads the Specialty Modes group.
 import './cholera'
 import './newPatient'
 import './loadPatient'

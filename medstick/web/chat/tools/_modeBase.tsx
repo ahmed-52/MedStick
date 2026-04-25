@@ -3,6 +3,7 @@ import { api } from '@/lib/api'
 import type { EncounterMode } from '@/lib/types'
 import type { ToolContext } from '../ToolRegistry'
 import { SpecialtyCard } from '../cards/SpecialtyCard'
+import { useApp } from '@/store/app'
 
 export interface ModeOptions {
   mode: EncounterMode
@@ -65,16 +66,18 @@ export async function runSpecialtyMode(ctx: ToolContext, opts: ModeOptions) {
       card: opts.parser(text),
     })
 
-    if (ctx.activePatientId) {
-      try {
-        await api.createEncounter({
-          patient_id: ctx.activePatientId,
-          chat_id: ctx.activeChatId,
-          mode: opts.mode,
-          raw_result: text,
-        })
-      } catch {}
-    }
+    // Always persist the encounter — even if no patient is explicitly active,
+    // the chat itself is usually tied to one, and the server will surface
+    // the encounter on that patient's detail via the chat_id join.
+    try {
+      await api.createEncounter({
+        patient_id: ctx.activePatientId,
+        chat_id: ctx.activeChatId,
+        mode: opts.mode,
+        raw_result: text,
+      })
+      useApp.getState().bumpChatList()
+    } catch {}
   } catch (err: any) {
     ctx.replaceInline(placeholderId, {
       role: 'tool',

@@ -25,6 +25,10 @@ export interface ChatBody {
   }>
   max_tokens?: number
   temperature?: number
+  // When set, the server runs RAG against these document IDs and injects the
+  // retrieved excerpts as a system message before forwarding to llama.
+  doc_ids?: string[]
+  query?: string
 }
 
 export const api = {
@@ -48,6 +52,14 @@ export const api = {
     jsonReq<void>(`/api/chats/${chat_id}`, { method: 'DELETE' }),
   getMessages: (chat_id: string) =>
     jsonReq<Message[]>(`/api/chats/${chat_id}/messages`),
+  // Append message(s) to a chat WITHOUT calling the LLM. Used by tool flows
+  // (e.g. Cholera assessment) that compute their own answer but want the
+  // exchange in chat history so follow-up turns have context.
+  logMessages: (chat_id: string, messages: Array<{ role: 'user' | 'assistant' | 'tool'; content: string }>) =>
+    jsonReq<{ messages: Message[] }>(`/api/chats/${chat_id}/log`, {
+      method: 'POST',
+      body: JSON.stringify({ messages }),
+    }),
 
   listEncounters: (patient_id?: string) =>
     jsonReq<Encounter[]>(`/api/encounters${patient_id ? `?patient_id=${patient_id}` : ''}`),

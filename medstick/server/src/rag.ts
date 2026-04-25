@@ -48,6 +48,21 @@ export async function buildRagSystemMessage(
 ): Promise<string | null> {
   const docIds = db.listAttachedDocIdsForChat(d, chatId)
   if (docIds.length === 0) return null
+  return buildRagFromDocs(d, docIds, query)
+}
+
+/**
+ * Same as buildRagSystemMessage but takes explicit document IDs instead of
+ * looking them up via an attached chat. Used by the one-shot /api/chat path
+ * (e.g. the Cholera mode) so the model can ground a structured response in
+ * a specific PDF without requiring a chat session.
+ */
+export async function buildRagFromDocs(
+  d: db.DB,
+  docIds: string[],
+  query: string,
+): Promise<string | null> {
+  if (docIds.length === 0) return null
 
   const trimmed = query.trim()
   if (!trimmed) return null

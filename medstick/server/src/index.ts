@@ -15,7 +15,12 @@ import { chat } from './routes/chat.js'
 import { documents } from './routes/documents.js'
 
 const PORT = Number(process.env.PORT ?? 3000)
-const DATA_DIR = resolve(process.env.DATA_DIR ?? './data')
+// Default to <repo>/data, not the cwd's ./data — npm --prefix server changes
+// cwd to server/ and would otherwise put the DB in server/data, silently
+// desyncing from ingest scripts and start.sh.
+const DATA_DIR = resolve(
+  process.env.DATA_DIR ?? new URL('../../data', import.meta.url).pathname,
+)
 const PHOTOS_DIR = resolve(DATA_DIR, 'photos')
 const WEB_DIR = resolve(process.env.WEB_DIR ?? '../web/dist')
 

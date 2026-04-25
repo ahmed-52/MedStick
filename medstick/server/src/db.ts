@@ -347,7 +347,19 @@ export function createEncounter(db: DB, input: {
 
 export function listEncounters(db: DB, opts: { patient_id?: string } = {}): Encounter[] {
   if (opts.patient_id) {
-    return db.prepare('SELECT * FROM encounters WHERE patient_id = ? ORDER BY created_at DESC').all(opts.patient_id) as Encounter[]
+    // An encounter "belongs to" the patient if either:
+    //   (a) it has the patient_id set directly, or
+    //   (b) it was attached to a chat that belongs to the patient.
+    // Chats carry the patient context that mode-run encounters often miss
+    // when activePatientId wasn't set at the moment the mode fired.
+    return db
+      .prepare(
+        `SELECT DISTINCT e.* FROM encounters e
+         LEFT JOIN chats c ON e.chat_id = c.id
+         WHERE e.patient_id = @pid OR c.patient_id = @pid
+         ORDER BY e.created_at DESC`,
+      )
+      .all({ pid: opts.patient_id }) as Encounter[]
   }
   return db.prepare('SELECT * FROM encounters ORDER BY created_at DESC').all() as Encounter[]
 }

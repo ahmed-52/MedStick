@@ -49,6 +49,18 @@ const HAS_NONE_FILLER = (t: string) =>
   /Red flags?\s*(\/|·|—|-)?\s*refer urgently:\s*(none|n\/a|—|-)\s*\.?\s*$/im.test(t) ||
   /Follow-?up:\s*(none|n\/a|—|-)\s*\.?\s*$/im.test(t)
 
+// ── Style: conversational, not robotic ──
+const STARTS_WITH_GREETING = (t: string) =>
+  /^\s*(hello|hi|hey|sure|okay|of course|good question|great question)\b/i.test(t)
+const noScaffoldByDefault: Assertion = {
+  desc: 'no SOAP scaffold (Assessment / Immediate steps / Red flags) on a normal clinical question',
+  ok: (t) => !HAS_SCAFFOLD(t),
+}
+const noOpeningGreeting: Assertion = {
+  desc: 'does not lead with "Hello / Hi / Sure / Okay" when the user did not greet first',
+  ok: (t) => !STARTS_WITH_GREETING(t),
+}
+
 // ── Prompt-leak: model regurgitating system-prompt boilerplate ──
 const PROMPT_LEAK_PATTERNS: { desc: string; rx: RegExp }[] = [
   { desc: 'header echo "PROACTIVE SAFETY TRIGGERS" / "SAFETY TRIGGER"', rx: /\b(proactive\s+safety\s+triggers?|safety\s+trigger)\b/i },
@@ -242,6 +254,48 @@ const CASES = (patients: Record<string, Patient>): Case[] => [
       {
         prompt: 'layla feels unwell',
         must: [...refusalAssertions(), ...promptLeakAssertions()],
+      },
+    ],
+  },
+  {
+    name: 'rich clinical scenario → conversational prose, no SOAP scaffold by default',
+    turns: [
+      {
+        prompt: 'Tariq is 45, came in not eating and dehydrated, what should we do',
+        must: [
+          ...refusalAssertions(),
+          noScaffoldByDefault,
+          noOpeningGreeting,
+          { desc: 'mentions IV / fluids / Ringer / saline / bolus', ok: (t) => /\b(IV|ringer|saline|fluid|bolus|rehydrat)/i.test(t) },
+        ],
+      },
+    ],
+  },
+  {
+    name: 'follow-up clinical detail → still conversational, no SOAP scaffold',
+    turns: [
+      {
+        prompt: 'Tariq is 45 and dehydrated, came in not eating',
+      },
+      {
+        prompt: 'he has pimples all over his body',
+        must: [
+          ...refusalAssertions(),
+          noScaffoldByDefault,
+          noOpeningGreeting,
+        ],
+      },
+    ],
+  },
+  {
+    name: 'explicit SOAP request → user asked, scaffold IS allowed',
+    turns: [
+      {
+        prompt: 'Give me a SOAP note for a 30 yo woman with severe dehydration from acute gastroenteritis, vitals stable.',
+        must: [
+          ...refusalAssertions(),
+          { desc: 'uses Assessment / Plan headers because explicitly requested', ok: (t) => HAS_SCAFFOLD(t) },
+        ],
       },
     ],
   },

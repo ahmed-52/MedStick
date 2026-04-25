@@ -1,21 +1,25 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { RiArrowLeftLine, RiArrowRightLine, RiArrowDownSLine } from '@remixicon/react'
+import { useRouter } from 'next/navigation'
+import { RiArrowLeftLine, RiArrowRightLine, RiArrowDownSLine, RiChat3Line } from '@remixicon/react'
 import * as Button from '@/components/ui/button'
 import { useApp } from '@/store/app'
 import { useI18n } from '@/i18n/useI18n'
 import { api } from '@/lib/api'
-import type { Patient, Encounter, Photo } from '@/lib/types'
+import type { Patient, Encounter, Photo, Chat } from '@/lib/types'
 
 export function PatientDetail({ id }: { id: string }) {
   const { t, isRtl } = useI18n()
+  const router = useRouter()
   const setViewing = useApp((s) => s.setViewingPatient)
   const setActive = useApp((s) => s.setActivePatient)
   const setActiveChat = useApp((s) => s.setActiveChat)
+  const chatListVersion = useApp((s) => s.chatListVersion)
 
   const [patient, setPatient] = useState<Patient | null>(null)
   const [encs, setEncs] = useState<Encounter[]>([])
+  const [chats, setChats] = useState<Chat[]>([])
   const [photos, setPhotos] = useState<Photo[]>([])
   const [editName, setEditName] = useState('')
   const [editAge, setEditAge] = useState('')
@@ -26,12 +30,19 @@ export function PatientDetail({ id }: { id: string }) {
     const load = async () => {
       try {
         const p = await api.getPatient(id)
-        const e = await api.listEncounters(id)
         if (cancel) return
         setPatient(p)
         setEditName(p.name)
         setEditAge(p.age_years?.toString() ?? '')
+
+        const [e, cs] = await Promise.all([
+          api.listEncounters(id).catch(() => [] as Encounter[]),
+          api.listChats(id).catch(() => [] as Chat[]),
+        ])
+        if (cancel) return
         setEncs(e)
+        setChats(cs)
+
         const pr = await fetch(`/api/photos?patient_id=${id}`).catch(() => null)
         if (pr?.ok) {
           const arr = await pr.json()
@@ -43,7 +54,20 @@ export function PatientDetail({ id }: { id: string }) {
     return () => {
       cancel = true
     }
-  }, [id])
+  }, [id, chatListVersion])
+
+  const openChat = (chatId: string) => {
+    setActive(id)
+    setActiveChat(chatId)
+    setViewing(null)
+    router.push('/chat')
+  }
+
+  const truncate = (s: string | null | undefined, n = 60): string => {
+    const v = (s ?? '').trim()
+    if (!v) return 'New chat'
+    return v.length > n ? v.slice(0, n) + '…' : v
+  }
 
   if (!patient) return <div className="p-6 text-text-soft-400 text-sm">Loading…</div>
 
@@ -101,7 +125,41 @@ export function PatientDetail({ id }: { id: string }) {
             </div>
 
             <div>
-              <h3 className="text-text-strong-950 text-sm font-bold mb-2 px-1">{t.patients.encounters} · {encs.length}</h3>
+              <h3 className="text-text-strong-950 text-sm font-bold mb-2 px-1">
+                Chats · {chats.length}
+              </h3>
+              <div className="space-y-1.5">
+                {chats.length === 0 ? (
+                  <div className="text-xs text-text-soft-400 px-1">No chats yet</div>
+                ) : (
+                  chats.map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => openChat(c.id)}
+                      className="group w-full rounded-xl border border-stroke-soft-200 bg-bg-white-0 hover:border-[var(--color-who-blue)]/40 hover:bg-[var(--color-who-tint)]/30 transition-colors px-3 py-2.5 text-start flex items-center gap-3"
+                    >
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--color-who-tint)] text-[var(--color-who-blue-deep)]">
+                        <RiChat3Line className="size-4" />
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[13.5px] font-medium text-text-strong-950 truncate">
+                          {truncate(c.title)}
+                        </div>
+                        <div className="text-[11px] text-text-soft-400">
+                          {new Date(c.created_at).toLocaleString()}
+                        </div>
+                      </div>
+                      <RiArrowRightLine className="size-4 shrink-0 text-text-soft-400 group-hover:text-[var(--color-who-blue-deep)]" />
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-text-strong-950 text-sm font-bold mb-2 px-1">
+                {t.patients.encounters} · {encs.length}
+              </h3>
               <div className="space-y-2">
                 {encs.length === 0 ? (
                   <div className="text-xs text-text-soft-400 px-1">No encounters yet</div>
@@ -114,9 +172,22 @@ export function PatientDetail({ id }: { id: string }) {
                       >
                         <div className="flex items-center gap-2">
                           <RiArrowDownSLine className={`size-4 transition ${openEnc === e.id ? '' : '-rotate-90'}`} />
-                          <span className="font-bold uppercase text-[10px] tracking-wider text-primary-base">{e.mode}</span>
+                          <span className="font-bold uppercase text-[10px] tracking-wider text-[var(--color-who-blue-deep)]">{e.mode}</span>
                           <span className="text-text-soft-400">· {new Date(e.created_at).toLocaleDateString()}</span>
                         </div>
+                        {e.chat_id && (
+                          <span
+                            onClick={(ev) => {
+                              ev.stopPropagation()
+                              openChat(e.chat_id!)
+                            }}
+                            role="button"
+                            className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--color-who-blue-deep)] hover:underline px-2 py-0.5 rounded"
+                          >
+                            <RiChat3Line className="size-3.5" />
+                            Open chat
+                          </span>
+                        )}
                       </button>
                       {openEnc === e.id && (
                         <div className="px-4 pb-3 text-sm text-text-strong-950 space-y-2 border-t border-stroke-soft-200 pt-3">

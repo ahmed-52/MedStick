@@ -8,6 +8,9 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "ingest": "tsx src/scripts/ingest.ts",
+    "summarize": "tsx src/scripts/summarize.ts",
+    "seed:cholera": "tsx src/scripts/seedCholera.ts",
+    "seed:patients": "tsx src/scripts/seedPatients.ts",
     "eval": "tsx src/scripts/eval.ts"
   },
   "dependencies": {
