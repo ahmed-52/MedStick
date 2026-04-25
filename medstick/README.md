@@ -26,6 +26,17 @@ medstick/
 3. Place GGUF weights in `models/`:
    - `medgemma-4b-it-Q4_K_M.gguf` (text — required)
    - `mmproj-medgemma-4b-it-f16.gguf` (vision projector — required for image modes)
+   - `nomic-embed-text-v1.5.Q4_K_M.gguf` (embedder — required for WHO PDF RAG; any GGUF whose filename contains `embed` is auto-detected)
+
+## Ingest a WHO PDF (for RAG)
+
+With `start.sh` running (so the embedder on `:8081` is up):
+
+```bash
+npm --prefix server run ingest -- path/to/cholera.pdf
+```
+
+The script extracts text via pdfjs-dist, splits into ~500-token chunks with paragraph/heading awareness, embeds each chunk against the local embedder, and stores everything in `data/medstick.db`. Re-ingesting the same file is a no-op (idempotent on SHA-256). After ingestion the document appears in **Library → Documents**; tap "Attach to chat" to ground subsequent replies in its content.
 
 ## Run
 

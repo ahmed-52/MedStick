@@ -1,0 +1,16 @@
+'use client'
+// Side-effect imports — each module registers its tool with the registry on import.
+// Cholera registers first so it leads the protocols group at the top of the menu.
+import './cholera'
+import './newPatient'
+import './loadPatient'
+import './clearPatient'
+import './saveEncounter'
+import './attachPhoto'
+import './searchProtocol'
+import './drugDose'
+import './xray'
+import './compareXrays'
+import './derm'
+import './lab'
+import './locate'

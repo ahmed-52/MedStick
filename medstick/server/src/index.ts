@@ -12,6 +12,7 @@ import { encounters } from './routes/encounters.js'
 import { protocols } from './routes/protocols.js'
 import { chats } from './routes/chats.js'
 import { chat } from './routes/chat.js'
+import { documents } from './routes/documents.js'
 
 const PORT = Number(process.env.PORT ?? 3000)
 const DATA_DIR = resolve(process.env.DATA_DIR ?? './data')
@@ -37,9 +38,12 @@ app.use('/api', encounters)
 app.use('/api', protocols)
 app.use('/api', chats)
 app.use('/api', chat)
+app.use('/api', documents)
 
 if (existsSync(WEB_DIR)) {
-  app.use(express.static(WEB_DIR))
+  // `extensions: ['html']` lets Next.js's static export resolve /patients
+  // to patients.html, /library to library.html, etc.
+  app.use(express.static(WEB_DIR, { extensions: ['html'] }))
   app.get(/^\/(?!api).*/, (_req, res) => {
     res.sendFile(resolve(WEB_DIR, 'index.html'))
   })

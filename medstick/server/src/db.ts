@@ -73,6 +73,40 @@ CREATE TABLE IF NOT EXISTS protocols (
   created_at   TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_protocols_lang_topic ON protocols(lang, topic);
+
+CREATE TABLE IF NOT EXISTS documents (
+  id           TEXT PRIMARY KEY,
+  title        TEXT NOT NULL,
+  source_path  TEXT,
+  pdf_hash     TEXT NOT NULL UNIQUE,
+  page_count   INTEGER NOT NULL,
+  lang         TEXT NOT NULL DEFAULT 'en',
+  created_at   TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS document_chunks (
+  id           TEXT PRIMARY KEY,
+  document_id  TEXT NOT NULL,
+  ord          INTEGER NOT NULL,
+  page_start   INTEGER,
+  page_end     INTEGER,
+  heading      TEXT,
+  text         TEXT NOT NULL,
+  vec          BLOB NOT NULL,
+  created_at   TEXT NOT NULL,
+  FOREIGN KEY(document_id) REFERENCES documents(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_document_chunks_doc ON document_chunks(document_id, ord);
+
+CREATE TABLE IF NOT EXISTS chat_documents (
+  chat_id      TEXT NOT NULL,
+  document_id  TEXT NOT NULL,
+  attached_at  TEXT NOT NULL,
+  PRIMARY KEY (chat_id, document_id),
+  FOREIGN KEY(chat_id)     REFERENCES chats(id)     ON DELETE CASCADE,
+  FOREIGN KEY(document_id) REFERENCES documents(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_chat_documents_chat ON chat_documents(chat_id);
 `
 
 export type DB = Database.Database
@@ -97,6 +131,7 @@ export interface Chat {
   id: string
   patient_id: string | null
   created_at: string
+  title?: string | null
 }
 
 export interface Message {
@@ -140,6 +175,28 @@ export interface Protocol {
   topic: string
   content: string
   source: string
+  created_at: string
+}
+
+export interface Document {
+  id: string
+  title: string
+  source_path: string | null
+  pdf_hash: string
+  page_count: number
+  lang: Lang
+  created_at: string
+}
+
+export interface DocumentChunk {
+  id: string
+  document_id: string
+  ord: number
+  page_start: number | null
+  page_end: number | null
+  heading: string | null
+  text: string
+  vec: Buffer
   created_at: string
 }
 
@@ -215,10 +272,22 @@ export function getChat(db: DB, id: string): Chat | null {
 }
 
 export function listChats(db: DB, opts: { patient_id?: string } = {}): Chat[] {
+  const select = `
+    SELECT
+      c.id,
+      c.patient_id,
+      c.created_at,
+      (
+        SELECT m.content FROM messages m
+        WHERE m.chat_id = c.id AND m.role = 'user'
+        ORDER BY m.created_at ASC LIMIT 1
+      ) AS title
+    FROM chats c
+  `
   if (opts.patient_id) {
-    return db.prepare('SELECT * FROM chats WHERE patient_id = ? ORDER BY created_at DESC').all(opts.patient_id) as Chat[]
+    return db.prepare(`${select} WHERE c.patient_id = ? ORDER BY c.created_at DESC`).all(opts.patient_id) as Chat[]
   }
-  return db.prepare('SELECT * FROM chats ORDER BY created_at DESC').all() as Chat[]
+  return db.prepare(`${select} ORDER BY c.created_at DESC`).all() as Chat[]
 }
 
 export function appendMessage(db: DB, msg: {
@@ -370,4 +439,106 @@ export function searchProtocols(db: DB, q: string, lang: Lang, limit = 3): Proto
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
     .map(x => x.p)
+}
+
+// ---------- documents ----------
+
+export function findDocumentByHash(db: DB, hash: string): Document | null {
+  return (db.prepare('SELECT * FROM documents WHERE pdf_hash = ?').get(hash) as Document | undefined) ?? null
+}
+
+export function getDocument(db: DB, id: string): Document | null {
+  return (db.prepare('SELECT * FROM documents WHERE id = ?').get(id) as Document | undefined) ?? null
+}
+
+export function listDocuments(db: DB): Document[] {
+  return db.prepare('SELECT * FROM documents ORDER BY created_at DESC').all() as Document[]
+}
+
+export function listDocumentsByIds(db: DB, ids: string[]): Document[] {
+  if (ids.length === 0) return []
+  const placeholders = ids.map(() => '?').join(',')
+  return db.prepare(`SELECT * FROM documents WHERE id IN (${placeholders})`).all(...ids) as Document[]
+}
+
+export function insertDocument(db: DB, input: {
+  title: string
+  source_path?: string | null
+  pdf_hash: string
+  page_count: number
+  lang?: Lang
+}): Document {
+  const d: Document = {
+    id: randomUUID(),
+    title: input.title,
+    source_path: input.source_path ?? null,
+    pdf_hash: input.pdf_hash,
+    page_count: input.page_count,
+    lang: input.lang ?? 'en',
+    created_at: now(),
+  }
+  db.prepare(`INSERT INTO documents (id, title, source_path, pdf_hash, page_count, lang, created_at)
+    VALUES (@id, @title, @source_path, @pdf_hash, @page_count, @lang, @created_at)`).run(d)
+  return d
+}
+
+export function deleteDocument(db: DB, id: string): void {
+  db.prepare('DELETE FROM documents WHERE id = ?').run(id)
+}
+
+export interface ChunkInput {
+  document_id: string
+  ord: number
+  page_start: number | null
+  page_end: number | null
+  heading: string | null
+  text: string
+  vec: Buffer
+}
+
+export function insertChunks(db: DB, chunks: ChunkInput[]): void {
+  const stmt = db.prepare(`INSERT INTO document_chunks
+    (id, document_id, ord, page_start, page_end, heading, text, vec, created_at)
+    VALUES (@id, @document_id, @ord, @page_start, @page_end, @heading, @text, @vec, @created_at)`)
+  const created_at = now()
+  const tx = db.transaction((rows: ChunkInput[]) => {
+    for (const r of rows) {
+      stmt.run({ id: randomUUID(), created_at, ...r })
+    }
+  })
+  tx(chunks)
+}
+
+export function listChunksForDocs(db: DB, docIds: string[]): DocumentChunk[] {
+  if (docIds.length === 0) return []
+  const placeholders = docIds.map(() => '?').join(',')
+  return db.prepare(
+    `SELECT * FROM document_chunks WHERE document_id IN (${placeholders}) ORDER BY document_id, ord`,
+  ).all(...docIds) as DocumentChunk[]
+}
+
+// ---------- chat_documents ----------
+
+export function attachDocToChat(db: DB, chat_id: string, document_id: string): void {
+  db.prepare(`INSERT OR IGNORE INTO chat_documents (chat_id, document_id, attached_at)
+    VALUES (?, ?, ?)`).run(chat_id, document_id, now())
+}
+
+export function detachDocFromChat(db: DB, chat_id: string, document_id: string): void {
+  db.prepare('DELETE FROM chat_documents WHERE chat_id = ? AND document_id = ?')
+    .run(chat_id, document_id)
+}
+
+export function listAttachedDocsForChat(db: DB, chat_id: string): Document[] {
+  return db.prepare(
+    `SELECT d.* FROM documents d
+     JOIN chat_documents cd ON cd.document_id = d.id
+     WHERE cd.chat_id = ?
+     ORDER BY cd.attached_at ASC`,
+  ).all(chat_id) as Document[]
+}
+
+export function listAttachedDocIdsForChat(db: DB, chat_id: string): string[] {
+  const rows = db.prepare('SELECT document_id FROM chat_documents WHERE chat_id = ?').all(chat_id) as { document_id: string }[]
+  return rows.map(r => r.document_id)
 }

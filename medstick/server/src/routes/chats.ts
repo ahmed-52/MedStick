@@ -2,6 +2,8 @@ import { Router } from 'express'
 import * as db from '../db.js'
 import { chatCompletionStream, type ChatMessage } from '../llama.js'
 import { rewriteImagesInMessages } from '../imageRewrite.js'
+import { buildRagSystemMessage } from '../rag.js'
+import { buildClinicalSystem } from '../systemPrompt.js'
 
 export const chats = Router()
 
@@ -57,7 +59,24 @@ chats.post('/chats/:id/messages', async (req, res) => {
   const history = db.listMessages(d, chatId)
 
   const llamaMessages: ChatMessage[] = []
+
+  // 1) MedStick clinical persona (patient context + matched WHO IMCI summaries).
+  const clinical = buildClinicalSystem(d, { chatId, userText: content })
+  llamaMessages.push({ role: 'system', content: clinical.base })
+
+  // 2) Contextual safety trigger — only present when the user's message actually
+  //    mentions a contraindicated drug/scenario. Kept as a separate message so
+  //    the model can't echo a generic "PROACTIVE SAFETY TRIGGERS" header.
+  if (clinical.trigger) {
+    llamaMessages.push({ role: 'system', content: clinical.trigger })
+  }
+
+  // 3) Tool-specific system override (specialty modes pass their own).
   if (system) llamaMessages.push({ role: 'system', content: system })
+
+  // 4) RAG excerpts from attached PDFs, if any.
+  const ragSystem = await buildRagSystemMessage(d, chatId, content)
+  if (ragSystem) llamaMessages.push({ role: 'system', content: ragSystem })
 
   // Build messages, collapsing any consecutive same-role messages so Gemma's
   // chat template (which requires strict user/assistant alternation) doesn't
