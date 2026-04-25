@@ -1,0 +1,38 @@
+# deps
+node_modules/
+
+# build output
+dist/
+build/
+.vite/
+
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# os
+.DS_Store
+Thumbs.db
+
+# editor
+.vscode/
+.idea/
+*.swp
+
+# data / runtime
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+logs/
+*.log
+
+# models (huge, never commit)
+models/
+*.gguf
+
+# misc
+.claude/
+*.local
