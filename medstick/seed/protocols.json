@@ -1,1 +1,74 @@
-[]
+[
+  {
+    "topic": "Fever in children under 5",
+    "content_en": "Measure axillary temperature. Fever is ≥37.5°C. Assess for danger signs: unable to drink/breastfeed, vomiting everything, convulsions, lethargy or unconsciousness. If any danger sign present, refer urgently. For fever without danger signs in malaria-endemic areas, perform RDT and treat positive cases with first-line ACT. Give paracetamol 15 mg/kg every 6 hours for comfort. Encourage fluids and continued feeding.",
+    "content_ar": "قِس درجة حرارة الإبط. تُعدّ حُمّى عند ≥37.5°م. ابحث عن علامات الخطر: عدم القدرة على الشرب أو الرضاعة، التقيؤ المستمر، التشنجات، الخمول أو فقدان الوعي. إذا وُجدت أي علامة خطر فالتحويل عاجل. في المناطق الموبوءة بالملاريا أجرِ اختبار التشخيص السريع وعالج الحالات الإيجابية بعلاج مركّب من الأرتيميسينين. أعطِ باراسيتامول 15 ملغ/كغ كل 6 ساعات لتخفيف الأعراض. شجّع على السوائل ومواصلة التغذية.",
+    "source": "WHO IMCI Chart Booklet 2014"
+  },
+  {
+    "topic": "Dehydration assessment",
+    "content_en": "Look at general condition: lethargic/unconscious or restless/irritable suggests dehydration. Sunken eyes. Offer fluid: drinks poorly or eagerly thirsty. Skin pinch returns slowly (≥2s). Severe dehydration: two or more signs including lethargy or very slow skin pinch — give IV fluids urgently. Some dehydration: ORS plan B. No dehydration: ORS plan A at home.",
+    "content_ar": "افحص الحالة العامة: الخمول أو فقدان الوعي أو التهيج يشير إلى الجفاف. عيون غائرة. اعرض السوائل: يشرب بصعوبة أو بشغف. عودة طية الجلد بطيئة (≥2 ثانية). جفاف شديد: علامتان أو أكثر بما فيها الخمول أو طية جلد بطيئة جداً — أعطِ السوائل وريديًا فورًا. بعض الجفاف: محلول الإماهة الفموية خطة ب. لا جفاف: خطة أ في المنزل.",
+    "source": "WHO IMCI Chart Booklet 2014"
+  },
+  {
+    "topic": "Acute respiratory infection",
+    "content_en": "Count breaths in one minute when child is calm. Fast breathing: ≥60/min if <2mo, ≥50/min if 2-12mo, ≥40/min if 1-5y. Look for chest indrawing and stridor. Pneumonia (fast breathing): amoxicillin 40 mg/kg twice daily for 5 days. Severe pneumonia (chest indrawing or stridor): refer urgently with first dose of antibiotic.",
+    "content_ar": "احسب التنفس في دقيقة عندما يكون الطفل هادئًا. تنفس سريع: ≥60/د لمن هم أقل من شهرين، ≥50/د لمن هم 2-12 شهرًا، ≥40/د لمن هم 1-5 سنوات. ابحث عن انسحاب جدار الصدر والصرير. الالتهاب الرئوي (تنفس سريع): أموكسيسيلين 40 ملغ/كغ مرتين يوميًا لمدة 5 أيام. الالتهاب الرئوي الشديد (انسحاب جدار الصدر أو الصرير): حوّل عاجلاً مع الجرعة الأولى من المضاد الحيوي.",
+    "source": "WHO IMCI Chart Booklet 2014"
+  },
+  {
+    "topic": "Severe acute malnutrition",
+    "content_en": "Measure MUAC: <115mm in children 6-59 months indicates severe acute malnutrition. Look for bilateral pitting oedema of feet. Check for medical complications: poor appetite, fever, vomiting, lethargy. Uncomplicated cases: outpatient therapeutic care with RUTF. Complicated cases: inpatient care with F-75 then F-100 milk.",
+    "content_ar": "قِس محيط منتصف الذراع العلوي: <115 ملم لدى الأطفال من 6-59 شهرًا يدل على سوء تغذية حاد شديد. ابحث عن وذمة انطباعية ثنائية في القدمين. تحقق من المضاعفات الطبية: ضعف الشهية، الحمى، التقيؤ، الخمول. الحالات غير المعقدة: رعاية علاجية خارجية بأغذية علاجية جاهزة للاستخدام. الحالات المعقدة: رعاية داخلية بحليب F-75 ثم F-100.",
+    "source": "WHO Management of SAM 2013"
+  },
+  {
+    "topic": "Malaria in children",
+    "content_en": "Suspect in any febrile child in endemic area. Confirm with RDT or microscopy before treating. Uncomplicated falciparum malaria: 3-day course of artemether-lumefantrine dosed by weight. Severe malaria (impaired consciousness, convulsions, respiratory distress, severe anaemia): IV/IM artesunate 2.4 mg/kg, refer urgently.",
+    "content_ar": "اشتبه في أي طفل محموم في منطقة موبوءة. أكّد بالاختبار التشخيصي السريع أو الفحص المجهري قبل العلاج. ملاريا منجلية غير معقدة: 3 أيام من أرتيميثر-لوميفانترين بحسب الوزن. ملاريا شديدة (اضطراب الوعي، تشنجات، ضائقة تنفسية، فقر دم شديد): أرتيسونات وريدي/عضلي 2.4 ملغ/كغ، حوّل عاجلاً.",
+    "source": "WHO Guidelines for Malaria 2023"
+  },
+  {
+    "topic": "Postpartum hemorrhage",
+    "content_en": "Active management of third stage: oxytocin 10 IU IM within 1 minute of birth. If bleeding >500ml: massage uterus, ensure bladder empty, give second dose oxytocin or misoprostol 800mcg sublingual. Bimanual compression while preparing transfer. Replace fluids with normal saline. Refer urgently if bleeding continues.",
+    "content_ar": "الإدارة النشطة للمرحلة الثالثة: أوكسيتوسين 10 وحدات دولية عضلي خلال دقيقة من الولادة. إذا تجاوز النزيف 500 مل: دلّك الرحم، تأكد من إفراغ المثانة، أعطِ جرعة ثانية من الأوكسيتوسين أو ميزوبروستول 800 ميكروغرام تحت اللسان. ضغط ثنائي اليد أثناء التحضير للتحويل. عوّض السوائل بمحلول ملحي طبيعي. حوّل عاجلاً إذا استمر النزيف.",
+    "source": "WHO PPH Recommendations 2012"
+  },
+  {
+    "topic": "Neonatal sepsis danger signs",
+    "content_en": "Any of: not feeding well, convulsions, fast breathing (≥60/min), severe chest indrawing, fever ≥37.5°C, low temperature <35.5°C, no movement on stimulation, yellow palms/soles. Any sign present: refer urgently after first dose of ampicillin 50 mg/kg IM and gentamicin 5 mg/kg IM. Keep newborn warm during transport.",
+    "content_ar": "أي من: ضعف الرضاعة، تشنجات، تنفس سريع (≥60/د)، انسحاب صدري شديد، حمى ≥37.5°م، انخفاض حرارة <35.5°م، عدم الحركة عند التنبيه، اصفرار الراحتين/الأخمصين. وجود أي علامة: حوّل عاجلاً بعد الجرعة الأولى من أمبيسيلين 50 ملغ/كغ عضلي وجنتاميسين 5 ملغ/كغ عضلي. حافظ على دفء المولود أثناء النقل.",
+    "source": "WHO Pocket Book Hospital Care for Children 2013"
+  },
+  {
+    "topic": "Childhood vaccination schedule",
+    "content_en": "Birth: BCG, OPV0, hepatitis B. 6 weeks: DTP-HepB-Hib1, OPV1, PCV1, rotavirus 1. 10 weeks: DTP-HepB-Hib2, OPV2, PCV2, rotavirus 2. 14 weeks: DTP-HepB-Hib3, OPV3, PCV3, IPV. 9 months: measles 1, rubella, yellow fever where applicable. 15-18 months: measles 2 or MMR.",
+    "content_ar": "عند الولادة: BCG، OPV0، التهاب الكبد ب. 6 أسابيع: DTP-HepB-Hib1، OPV1، PCV1، الفيروس العجلي 1. 10 أسابيع: DTP-HepB-Hib2، OPV2، PCV2، الفيروس العجلي 2. 14 أسبوعًا: DTP-HepB-Hib3، OPV3، PCV3، IPV. 9 أشهر: الحصبة 1، الحصبة الألمانية، الحمى الصفراء حيث ينطبق. 15-18 شهرًا: الحصبة 2 أو MMR.",
+    "source": "WHO EPI Recommendations 2023"
+  },
+  {
+    "topic": "Oral rehydration solution preparation",
+    "content_en": "Standard ORS: dissolve one sachet in 1 litre of clean water. Home-mix if no sachet: 1 litre boiled cooled water + 6 level teaspoons sugar + 1/2 level teaspoon salt. Give frequent small sips. Plan A: 50-100 ml after each loose stool for under 2y, 100-200 ml for 2-10y. Continue breastfeeding throughout. Discard mixed solution after 24 hours.",
+    "content_ar": "محلول الإماهة الفموية القياسي: أذِب كيسًا واحدًا في لتر من الماء النظيف. خلط منزلي عند عدم توفر الكيس: 1 لتر ماء مغلي مبرد + 6 ملاعق صغيرة سكر مستوية + 1/2 ملعقة صغيرة ملح مستوية. اعطِ رشفات صغيرة متكررة. خطة أ: 50-100 مل بعد كل براز رخو للأقل من سنتين، 100-200 مل للأطفال من 2-10 سنوات. تابع الرضاعة الطبيعية. تخلّص من المحلول المخلوط بعد 24 ساعة.",
+    "source": "WHO IMCI Chart Booklet 2014"
+  },
+  {
+    "topic": "Hand hygiene at point of care",
+    "content_en": "Five moments: before patient contact, before aseptic task, after body fluid exposure, after patient contact, after contact with surroundings. Alcohol-based handrub when hands not visibly soiled, 20-30 seconds. Soap and water when visibly soiled or after caring for someone with diarrhoea, 40-60 seconds.",
+    "content_ar": "خمس لحظات: قبل ملامسة المريض، قبل المهمة العقيمة، بعد التعرض لسوائل الجسم، بعد ملامسة المريض، بعد ملامسة المحيط. مطهر كحولي عندما تكون اليدان غير ملوثتين ظاهريًا لمدة 20-30 ثانية. الصابون والماء عند التلوث الظاهر أو بعد رعاية مصاب بالإسهال لمدة 40-60 ثانية.",
+    "source": "WHO Hand Hygiene Guidelines 2009"
+  },
+  {
+    "topic": "General danger signs in children",
+    "content_en": "Ask and look for: unable to drink or breastfeed, vomits everything, convulsions during this illness, lethargic or unconscious, convulsing now. Any one positive: classify as very severe disease, give first dose of appropriate antibiotic, treat low blood sugar, prevent and treat hypothermia, refer urgently.",
+    "content_ar": "اسأل وافحص عن: عدم القدرة على الشرب أو الرضاعة، التقيؤ المستمر، تشنجات خلال هذا المرض، الخمول أو فقدان الوعي، يتشنج الآن. أي علامة موجبة: صنّف كمرض شديد جدًا، أعطِ الجرعة الأولى من المضاد الحيوي المناسب، عالج انخفاض السكر، اقِ من انخفاض الحرارة وعالجه، حوّل عاجلاً.",
+    "source": "WHO IMCI Chart Booklet 2014"
+  },
+  {
+    "topic": "Exclusive breastfeeding 0-6 months",
+    "content_en": "Breastfeed on demand, day and night, at least 8 times in 24 hours. No water, juice, formula, or other foods unless medically indicated. Ensure proper attachment: chin touching breast, mouth wide open, lower lip turned out, more areola visible above than below. Treat sore nipples with attachment correction and air drying.",
+    "content_ar": "أرضِعي عند الطلب ليلاً ونهارًا، على الأقل 8 مرات في 24 ساعة. لا ماء ولا عصير ولا حليب صناعي ولا أطعمة أخرى ما لم يستدعِ ذلك طبيًا. تأكدي من التثبيت الصحيح: الذقن يلامس الثدي، الفم مفتوح على اتساعه، الشفة السفلى مقلوبة للخارج، رؤية أكبر للهالة من الأعلى. عالجي الحلمات المتشققة بتصحيح التثبيت والتجفيف بالهواء.",
+    "source": "WHO Infant Feeding Recommendations 2003"
+  }
+]
