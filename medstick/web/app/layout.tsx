@@ -5,23 +5,21 @@ import { cn } from "@/utils/cn";
 import { ThemeProvider } from "next-themes";
 import Script from "next/script";
 
-// Kill any service worker a previous prod build left in the browser. The
-// next-pwa SW from earlier builds runtime-cached /api/* GETs with NetworkFirst,
-// which made newly created chats silently invisible to the sidebar (it served
-// a stale 24-hour cached chat list). This kill switch unregisters any active
-// SW and wipes its caches on every page load. Safe to keep around — it only
-// runs if a SW is present.
-const KILL_SW = `
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations()
-    .then(rs => rs.forEach(r => r.unregister()))
-    .catch(() => {});
-  if (typeof caches !== 'undefined') {
-    caches.keys()
-      .then(ks => Promise.all(ks.map(k => caches.delete(k))))
-      .catch(() => {});
-  }
-}
+// One-shot purge of the broken `apis` cache from earlier builds (which
+// runtime-cached /api/* with NetworkFirst and made newly-created chats
+// invisible). The new SW uses NetworkOnly for /api/* so this only needs to
+// run once per browser; the localStorage flag prevents repeat runs.
+const PURGE_OLD_APIS_CACHE = `
+(function(){
+  try {
+    if (localStorage.getItem('medstick:apis-cache-purged')) return;
+    if (typeof caches !== 'undefined') {
+      caches.keys().then(function(ks){
+        return Promise.all(ks.filter(function(k){ return k === 'apis'; }).map(function(k){ return caches.delete(k); }));
+      }).then(function(){ localStorage.setItem('medstick:apis-cache-purged','1'); }).catch(function(){});
+    }
+  } catch(_) {}
+})();
 `;
 
 const inter = Inter({
@@ -33,6 +31,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "MedStick",
   description: "Offline-first AI clinical workspace",
+  manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -61,7 +60,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn(inter.variable, "antialiased")}>
-        <Script id="kill-sw" strategy="beforeInteractive">{KILL_SW}</Script>
+        <Script id="purge-old-apis-cache" strategy="beforeInteractive">{PURGE_OLD_APIS_CACHE}</Script>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

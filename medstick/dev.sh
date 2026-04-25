@@ -26,7 +26,7 @@ else
     echo "⚠ llama-server or GGUF model missing — chat will be disabled."
     echo "  Frontend HMR still works; UI loads with model offline indicator."
   else
-    LLAMA_ARGS=(-m "$MODEL" -c 4096 --port 8080 --host 127.0.0.1)
+    LLAMA_ARGS=(-m "$MODEL" -c 8192 --port 8080 --host 127.0.0.1)
     if [ -n "$MMPROJ" ]; then
       LLAMA_ARGS+=(--mmproj "$MMPROJ")
       echo "→ Vision projector: $MMPROJ"
