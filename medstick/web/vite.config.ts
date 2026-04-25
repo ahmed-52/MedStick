@@ -22,12 +22,9 @@ export default defineConfig({
       workbox: {
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
-        runtimeCaching: [
-          {
-            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
-            handler: 'NetworkOnly',
-          },
-        ],
+        // Don't precache or runtime-cache API routes — they pass through
+        // to the network unintercepted. Streaming SSE in particular must
+        // bypass workbox.
       },
     }),
   ],

@@ -44,6 +44,8 @@ export const api = {
     jsonReq<Chat[]>(`/api/chats${patient_id ? `?patient_id=${patient_id}` : ''}`),
   createChat: (patient_id: string | null) =>
     jsonReq<Chat>('/api/chats', { method: 'POST', body: JSON.stringify({ patient_id }) }),
+  deleteChat: (chat_id: string) =>
+    jsonReq<void>(`/api/chats/${chat_id}`, { method: 'DELETE' }),
   getMessages: (chat_id: string) =>
     jsonReq<Message[]>(`/api/chats/${chat_id}/messages`),
 

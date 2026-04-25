@@ -23,6 +23,12 @@ chats.get('/chats/:id', (req, res) => {
   res.json(c)
 })
 
+chats.delete('/chats/:id', (req, res) => {
+  const d = req.app.locals.db as db.DB
+  d.prepare('DELETE FROM chats WHERE id = ?').run(req.params.id)
+  res.status(204).end()
+})
+
 chats.get('/chats/:id/messages', (req, res) => {
   const list = db.listMessages(req.app.locals.db, req.params.id)
   res.json(list)
@@ -53,10 +59,14 @@ chats.post('/chats/:id/messages', async (req, res) => {
   const llamaMessages: ChatMessage[] = []
   if (system) llamaMessages.push({ role: 'system', content: system })
 
+  // Build messages, collapsing any consecutive same-role messages so Gemma's
+  // chat template (which requires strict user/assistant alternation) doesn't
+  // throw. This handles cases where past streaming runs failed and only
+  // user messages got persisted.
   for (const m of history) {
-    if (m.role === 'tool') continue
-    let parts: ChatMessage['content']
+    if (m.role === 'tool' || m.role === 'system') continue
     const imgIds: string[] = m.image_ids ? JSON.parse(m.image_ids) : []
+    let parts: ChatMessage['content']
     if (imgIds.length > 0) {
       parts = [
         { type: 'text', text: m.content },
@@ -68,7 +78,36 @@ chats.post('/chats/:id/messages', async (req, res) => {
     } else {
       parts = m.content
     }
-    llamaMessages.push({ role: m.role as any, content: parts })
+
+    const prev = llamaMessages[llamaMessages.length - 1]
+    if (prev && prev.role === m.role) {
+      // merge into previous message of same role
+      const prevText =
+        typeof prev.content === 'string'
+          ? prev.content
+          : prev.content.find(p => p.type === 'text')?.text ?? ''
+      const newText =
+        typeof parts === 'string'
+          ? parts
+          : parts.find(p => p.type === 'text')?.text ?? ''
+      const mergedText = `${prevText}\n\n${newText}`.trim()
+
+      const prevImages =
+        typeof prev.content === 'string'
+          ? []
+          : prev.content.filter(p => p.type === 'image_url')
+      const newImages =
+        typeof parts === 'string'
+          ? []
+          : parts.filter(p => p.type === 'image_url')
+      const allImages = [...prevImages, ...newImages]
+
+      prev.content = allImages.length > 0
+        ? [{ type: 'text', text: mergedText }, ...allImages]
+        : mergedText
+    } else {
+      llamaMessages.push({ role: m.role as any, content: parts })
+    }
   }
 
   const rewritten = rewriteImagesInMessages(llamaMessages, d, photosDir)
@@ -81,7 +120,12 @@ chats.post('/chats/:id/messages', async (req, res) => {
   res.write(`data: ${JSON.stringify({ user_message_id: userMsg.id })}\n\n`)
 
   const ac = new AbortController()
-  req.on('close', () => ac.abort())
+  // `res.on('close')` fires when the client actually disconnects;
+  // `req.on('close')` in modern Node fires when the request body finishes parsing,
+  // which would abort the upstream LLM call immediately.
+  res.on('close', () => {
+    if (!res.writableEnded) ac.abort()
+  })
 
   try {
     const full = await chatCompletionStream(

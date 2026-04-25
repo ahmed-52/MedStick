@@ -134,7 +134,19 @@ export function useChat() {
   const reset = useCallback(() => {
     setActiveChat(null)
     setMessages([])
-  }, [setActiveChat])
+    clearStaged()
+  }, [setActiveChat, clearStaged])
 
-  return { messages, send, streaming, appendInline, reset }
+  const deleteCurrent = useCallback(async () => {
+    if (!activeChatId) {
+      reset()
+      return
+    }
+    try {
+      await api.deleteChat(activeChatId)
+    } catch {}
+    reset()
+  }, [activeChatId, reset])
+
+  return { messages, send, streaming, appendInline, reset, deleteCurrent, activeChatId }
 }
