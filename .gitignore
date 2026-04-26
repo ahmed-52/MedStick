@@ -3,8 +3,12 @@ node_modules/
 
 # build output
 dist/
+dist-stick/
 build/
 .vite/
+
+# node runtime cache (downloaded by package-stick)
+.node-cache/
 
 # env / secrets
 .env
