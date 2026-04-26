@@ -1,6 +1,6 @@
 # MedStick
 
-**Offline-first AI clinical assistant for health workers in low-resource and humanitarian settings.**
+**Offline-first AI clinical platform for health workers in low-resource and humanitarian settings.**
 
 MedStick runs entirely on a laptop — no internet, no cloud API calls. A field worker or nurse carries it into areas with no connectivity and gets a clinical AI that can answer dosing questions, run WHO IMCI triage logic, perform RAG over ingested WHO PDFs, and maintain a full patient record — all inference local via llama.cpp + MedGemma 4B.
 
