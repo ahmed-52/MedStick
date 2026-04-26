@@ -1,7 +1,6 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import SettingsModal from "@/components/settings/settings-modal";
 import { usePathname, useRouter } from "next/navigation";
 import {
   useEffect,
@@ -27,8 +26,6 @@ import {
   RiPencilLine,
   RiDeleteBinLine,
   RiMoonLine,
-  RiSettings2Line,
-  RiTranslate,
   RiQuestionAnswerLine,
   RiLoginBoxLine,
   RiCloseLine,
@@ -50,22 +47,9 @@ const sidebarData = {
     email: "demo@medstick.local",
     avatar: "HW",
     isPro: false,
-    profileMenu: [
-      {
-        id: "settings",
-        label: "Settings",
-        icon: RiSettings2Line,
-        href: "/settings",
-      },
-      {
-        id: "language",
-        label: "Language",
-        icon: RiTranslate,
-        href: "/settings",
-      },
-    ],
+    profileMenu: [],
     version: "MedStick · MVP",
-    termsUrl: "/settings",
+    termsUrl: "#",
   },
   sections: [
     {
@@ -123,7 +107,6 @@ const MainSidebar = forwardRef<MainSidebarRef>((props, ref) => {
   const scrollableRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { theme, setTheme } = useTheme();
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const router = useRouter();
   const setActiveChat = useApp((s) => s.setActiveChat);
@@ -566,27 +549,6 @@ const MainSidebar = forwardRef<MainSidebarRef>((props, ref) => {
                 .filter((item) => item.variant !== "danger")
                 .map((item) => {
                   const IconComponent = item.icon;
-                  if (item.id === "settings") {
-                    return (
-                      <Button.Root
-                        key={item.id}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsSettingsOpen(true);
-                          setIsProfileOpenMini(false);
-                        }}
-                        className="group hover:bg-bg-weak-50 flex h-auto w-full cursor-pointer items-center justify-start gap-2 rounded-lg bg-transparent p-2 duration-300"
-                      >
-                        <Button.Icon
-                          as={IconComponent}
-                          className="text-text-soft-400 -mx-0 flex max-w-5 min-w-5 rounded-lg"
-                        />
-                        <span className="text-text-sub-600 group-hover:text-text-strong-950 tracking-spacing-tiny-2 flex-1 text-left text-sm font-medium duration-300">
-                          {item.label}
-                        </span>
-                      </Button.Root>
-                    );
-                  }
                   return (
                     <Link
                       key={item.id}
@@ -1273,28 +1235,6 @@ const MainSidebar = forwardRef<MainSidebarRef>((props, ref) => {
                             .filter((item) => item.variant !== "danger")
                             .map((item) => {
                               const IconComponent = item.icon;
-                              if (item.id === "settings") {
-                                return (
-                                  <Button.Root
-                                    key={item.id}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setIsSettingsOpen(true);
-                                      handleProfileClose();
-                                    }}
-                                    className="group hover:bg-bg-weak-50 flex h-auto w-full cursor-pointer items-center justify-start gap-2 rounded-lg bg-transparent px-5 py-3 duration-300 lg:p-2"
-                                  >
-                                    <Button.Icon
-                                      as={IconComponent}
-                                      className="text-text-soft-400 -mx-0 flex max-w-5 min-w-5 rounded-lg"
-                                    />
-                                    <span className="text-text-sub-600 group-hover:text-text-strong-950 tracking-spacing-tiny-2 flex-1 text-left text-sm font-medium duration-300">
-                                      {item.label}
-                                    </span>
-                                    <RiArrowRightSLine className="text-text-soft-400 size-5 lg:hidden" />
-                                  </Button.Root>
-                                );
-                              }
                               return (
                                 <Link
                                   key={item.id}
@@ -1349,10 +1289,6 @@ const MainSidebar = forwardRef<MainSidebarRef>((props, ref) => {
         </div>
       </div>
 
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-      />
     </>
   );
 });
